@@ -1,6 +1,7 @@
 ## Group2-Heat_Stress_Chinook_Salmon
 
-This is the repository for our project on Heat stress in Chinook Salmon for BIOL*4110
+This is the repository for our project on Heat stress in Chinook Salmon for BIOL*4110.
+
 Group members include: 
 - Hannah Bennett
 - Rose Brandt
