@@ -36,7 +36,7 @@ annual_sum_df <- temp_df %>%
   summarize(annual_mean_T = mean(mean_temp_c, na.rm = TRUE)) %>% 
   filter(year > 2009 & year < 2018)
 
-write.csv(annual_sm_df)
+write.csv(annual_sum_df, "Annual_Temps.csv", row.names = FALSE)
 
 ##monthly
 monthly_df <- temp_df %>% 
@@ -45,4 +45,4 @@ monthly_df <- temp_df %>%
   summarize(monthly_mean = mean(mean_temp_c, na.rm = TRUE)) %>% 
   filter(month > "04" & month < "10")
   
-  
+write.csv(monthly_df, "Monthly_Temps.csv", row.names = FALSE)
