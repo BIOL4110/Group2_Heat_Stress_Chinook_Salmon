@@ -43,4 +43,6 @@ monthly_df <- temp_df %>%
   mutate(month = format(date, "%m")) %>% 
   group_by(station, month) %>% 
   summarize(monthly_mean = mean(mean_temp_c, na.rm = TRUE)) %>% 
-  na.omit()
+  filter(month > "04" & month < "10")
+  
+  
