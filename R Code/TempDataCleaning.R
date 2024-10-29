@@ -2,6 +2,7 @@ library(readr)
 library(tidyverse)
 library(data.table)
 library(dplyr)
+library(ggplot2)
 
 ##Compiling Temp Data
 
@@ -46,3 +47,18 @@ monthly_df <- temp_df %>%
   filter(month > "04" & month < "10")
   
 write.csv(monthly_df, "Monthly_Temps.csv", row.names = FALSE)
+
+##graphing annual
+annual_sum_df %>% 
+  ggplot(aes(year, annual_mean_T))+
+  geom_point()+
+  ylim(0, 18)+
+  facet_wrap(~station, scales = 'free')+
+  theme_classic()
+
+##graphing monthly 
+monthly_df %>% 
+  ggplot(aes(month, monthly_mean))+
+  geom_point()+
+  facet_wrap(~station, scales = 'free')+
+  theme_classic()
