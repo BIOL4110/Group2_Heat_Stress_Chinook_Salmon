@@ -52,13 +52,26 @@ write.csv(monthly_df, "Monthly_Temps.csv", row.names = FALSE)
 annual_sum_df %>% 
   ggplot(aes(year, annual_mean_T))+
   geom_point()+
-  ylim(0, 18)+
+  geom_hline(yintercept= 19, colour = "red")+
+  geom_hline(yintercept= 12, linetype = 2, colour = "red")+
+  ylim(0,25)+
+  xlab("Year")+
+  ylab("Mean temp (C)")+
   facet_wrap(~station, scales = 'free')+
-  theme_classic()
+  annotate("text", x=2, y=22, label="Adult tolerance", size = 3.5, colour = "red")+
+  annotate("text", x=2, y=15, label="Juvenile tolerance", size = 3.5, colour = "red")+
+  theme_minimal()
 
 ##graphing monthly 
 monthly_df %>% 
   ggplot(aes(month, monthly_mean))+
   geom_point()+
+  geom_hline(yintercept= 19, colour = "red")+
+  geom_hline(yintercept= 12, linetype = 2, colour = "red")+
+  ylim(0,25)+
+  xlab("Month")+
+  ylab("Mean temp (C)")+
   facet_wrap(~station, scales = 'free')+
-  theme_classic()
+  annotate("text", x=4.5, y=22, label="Adult tolerance", size = 3.5, colour = "red")+
+  annotate("text", x=4.5, y=8, label="Juvenile tolerance", size = 3.5, colour = "red")+
+  theme_minimal()
