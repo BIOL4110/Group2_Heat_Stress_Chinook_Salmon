@@ -4,6 +4,7 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 
+
 ##Compiling Temp Data
 
 afognak_df <- read_csv("AKTEMP-USFWS_AlaskaOSM-OSM_Afognak-series-daily.csv", 
@@ -75,3 +76,12 @@ monthly_df %>%
   annotate("text", x=4.5, y=22, label="Adult tolerance", size = 3.5, colour = "red")+
   annotate("text", x=4.5, y=8, label="Juvenile tolerance", size = 3.5, colour = "red")+
   theme_minimal()
+
+
+ggplot(annual_sum_df, aes(as.numeric(year), annual_mean_T))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  theme_bw()+
+  ylab("Annual Mean Temp (C)")+
+  xlab("Year")
+
