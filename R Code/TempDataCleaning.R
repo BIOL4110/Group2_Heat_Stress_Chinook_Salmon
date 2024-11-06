@@ -3,7 +3,7 @@ library(tidyverse)
 library(data.table)
 library(dplyr)
 library(ggplot2)
-
+library(lubridate)
 
 ##Compiling Temp Data
 
@@ -42,42 +42,24 @@ write.csv(annual_sum_df, "Annual_Temps.csv", row.names = FALSE)
 
 ##monthly
 monthly_df <- temp_df %>% 
-  mutate(month = format(date, "%m")) %>% 
-  group_by(station, month) %>% 
+  mutate(month = format(date, "%m")) %>%
+  mutate(year = format(date, "%Y")) %>% 
+  group_by(station,year, month) %>% 
   summarize(monthly_mean = mean(mean_temp_c, na.rm = TRUE)) %>% 
-  filter(month > "04" & month < "10")
+  filter(month > "04" & month < "10") %>% 
+  filter(year > 2009 & year < 2018)
   
 write.csv(monthly_df, "Monthly_Temps.csv", row.names = FALSE)
-
-##graphing annual
-annual_sum_df %>% 
-  ggplot(aes(year, annual_mean_T))+
-  geom_point()+
-  geom_hline(yintercept= 19, colour = "red")+
-  geom_hline(yintercept= 12, linetype = 2, colour = "red")+
-  ylim(0,25)+
-  xlab("Year")+
-  ylab("Mean temp (C)")+
-  facet_wrap(~station, scales = 'free')+
-  annotate("text", x=2, y=22, label="Adult tolerance", size = 3.5, colour = "red")+
-  annotate("text", x=2, y=15, label="Juvenile tolerance", size = 3.5, colour = "red")+
-  theme_minimal()
 
 ##graphing monthly 
 monthly_df %>% 
   ggplot(aes(month, monthly_mean))+
   geom_point()+
-  geom_hline(yintercept= 19, colour = "red")+
-  geom_hline(yintercept= 12, linetype = 2, colour = "red")+
-  ylim(0,25)+
-  xlab("Month")+
+  xlab("Year")+
   ylab("Mean temp (C)")+
-  facet_wrap(~station, scales = 'free')+
-  annotate("text", x=4.5, y=22, label="Adult tolerance", size = 3.5, colour = "red")+
-  annotate("text", x=4.5, y=8, label="Juvenile tolerance", size = 3.5, colour = "red")+
   theme_minimal()
 
-
+##graphing annual generally
 ggplot(annual_sum_df, aes(as.numeric(year), annual_mean_T))+
   geom_point()+
   geom_smooth(method="lm")+
@@ -85,3 +67,70 @@ ggplot(annual_sum_df, aes(as.numeric(year), annual_mean_T))+
   ylab("Annual Mean Temp (C)")+
   xlab("Year")
 
+##graphing annual by station
+ggplot(annual_sum_df, aes(as.numeric(year), annual_mean_T, col = station))+
+  geom_point()+
+  geom_smooth(method="lm", se = FALSE)+
+  theme_bw()+
+  ylab("Annual Mean Temp (C)")+
+  xlab("Year")
+
+## SEASONAL TEMP ##
+str(temp_df)
+
+seasonal_df <- temp_df %>% 
+  mutate(yearmonth = format(date, "%Y-%m")) 
+
+seasonal_df$yearmonth <- ym(seasonal_df$yearmonth)
+
+str(seasonal_df)
+
+filtered_seasonal <- seasonal_df %>% 
+  filter(year(yearmonth) >= 2010,
+    year(yearmonth) <= 2017,
+    month(yearmonth) >= 5,
+    month(yearmonth) <= 9) %>% 
+  group_by(station, yearmonth) %>% 
+  summarize(seasonal_mean = mean(mean_temp_c, na.rm = TRUE))
+
+str(filtered_seasonal)
+
+write.csv(seasonal_df, "Seasonal_Temps.csv", row.names = FALSE)
+
+##plotting seasonal means by station
+filtered_seasonal %>% 
+  ggplot(aes(yearmonth, seasonal_mean, col = station))+
+  geom_point()+
+  geom_smooth(method="lm", se = FALSE)+
+  theme_bw()+
+  ylab("Seaonal Mean Temp (C)")+
+  xlab("Date")
+
+##plotting generally
+filtered_seasonal %>% 
+  ggplot(aes(yearmonth, seasonal_mean))+
+  geom_point()+
+  geom_smooth(method="lm", se = FALSE)+
+  theme_bw()+
+  ylab("Seaonal Mean Temp (C)")+
+  xlab("Date")
+
+
+## looking at summer temps just to see  
+summer_temps <- seasonal_df %>% 
+  filter(year(yearmonth) >= 2010,
+         year(yearmonth) <= 2017,
+         month(yearmonth) >= 6,
+         month(yearmonth) <= 8) %>% 
+  group_by(station, yearmonth) %>% 
+  summarize(summer_mean = mean(mean_temp_c, na.rm = TRUE))
+
+str(filtered_seasonal)
+
+summer_temps %>% 
+  ggplot(aes(yearmonth, summer_mean))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  theme_bw()+
+  ylab("Summer Mean Temp (C)")+
+  xlab("Date")
