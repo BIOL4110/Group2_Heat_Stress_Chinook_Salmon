@@ -36,6 +36,7 @@ joined_df <- full_join(juvenile_df_join, seasonal_by_year, by = "year")
 joined_df_ordered <- joined_df %>% 
   select("station", "year", "annual_seasonal", "juvenile_productivity")
 
+write_csv(joined_df_ordered, "Cleaned Data/JS_Temperature_Joined.csv")
 
 #running analysis
 model1 <-lm(juvenile_productivity ~ annual_seasonal, data = joined_df_ordered)
@@ -77,3 +78,8 @@ summary(model5)
 
 #project into future?
 #future research: how do current temps influence
+
+
+#suggestions from laney
+##Plotting all variables: scatterplot matrix
+pairs(joined_df_ordered[,2:4])
