@@ -53,6 +53,11 @@ joined_df_ordered %>%
 #p value insignificant
 # seasonal temperatures from 2010-2017 not yet high enough to impact juvenile productivity
 
+model2 <-lm(juvenile_productivity ~ annual_seasonal+year, data = joined_df_ordered)
+
+summary(model2)
+
+
 model3<-lm(juvenile_productivity ~ year, data = joined_df_ordered)
 
 summary(model3)
@@ -65,6 +70,10 @@ joined_df_ordered %>%
 model4 <-lm(juvenile_productivity ~ station, data = joined_df_ordered)
 
 summary(model4)
+
+model5 <-lm(juvenile_productivity ~ station+year+annual_seasonal, data = joined_df_ordered)
+
+summary(model5)
 
 #project into future?
 #future research: how do current temps influence
