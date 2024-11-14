@@ -4,6 +4,10 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 
+##is there a sig increase in temp over study period
+temp_mod <- lm(annual_seasonal ~ year, data = seasonal_by_year)
+summary(temp_mod)
+
 juvenile_df <- read_csv("Cleaned Data/Juvenile_Data.csv")
 
 seasonal_df <- read_csv("Cleaned Data/Filtered_Seasonal_Temps.csv")
@@ -15,6 +19,7 @@ seasonal_by_year <- seasonal_df %>%
   mutate(year = format(yearmonth, "%Y")) %>% 
   group_by(station, year) %>% 
   summarize(annual_seasonal = mean(seasonal_mean, na.rm = TRUE))
+
 
 write_csv(seasonal_by_year, "Seasonal_by_Year.csv")
 
@@ -83,3 +88,35 @@ summary(model5)
 #suggestions from laney
 ##Plotting all variables: scatterplot matrix
 pairs(joined_df_ordered[,2:4])
+#don't include station
+
+seasonal_by_year_fix <- seasonal_df %>% 
+  mutate(year = format(yearmonth, "%Y")) %>% 
+  group_by(year) %>% 
+  summarize(annual_seasonal = mean(seasonal_mean, na.rm = TRUE)) %>% 
+  subset(select = c("year", "annual_seasonal"))
+
+
+seasonal_by_year_fix <- as_tibble(seasonal_by_year_fix)
+seasonal_by_year_fix$year <- as.numeric(seasonal_by_year_fix$year)
+
+joined_df_fix <- inner_join(juvenile_df_join, seasonal_by_year_fix, by = "year")
+
+joined_fix <- joined_df_fix %>%
+  select("year", "annual_seasonal", "juvenile_productivity") 
+
+joined_fix$logtemp <- log(joined_fix$annual_seasonal)
+joined_fix$logprod <- log(joined_fix$juvenile_productivity)
+
+model6 <-lm(logprod ~ logtemp+year, data = joined_fix)
+
+summary(model6)
+
+pairs(joined_fix[,2:5])
+
+joined_fix %>% 
+  ggplot(aes(logtemp, logprod))+
+  geom_point()+
+  geom_smooth(method = 'lm')+
+  xlab("log(Yearly Seasonal Temperature)")+
+  ylab("log(Juvenile Productivity")

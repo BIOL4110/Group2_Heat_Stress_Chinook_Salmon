@@ -134,3 +134,6 @@ summer_temps %>%
   theme_bw()+
   ylab("Summer Mean Temp (C)")+
   xlab("Date")
+
+
+
