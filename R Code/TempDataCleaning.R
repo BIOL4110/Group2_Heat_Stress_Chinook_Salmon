@@ -95,7 +95,7 @@ filtered_seasonal <- seasonal_df %>%
 
 str(filtered_seasonal)
 
-write.csv(seasonal_df, "Seasonal_Temps.csv", row.names = FALSE)
+write.csv(filtered_seasonal, "Filtered_Seasonal_Temps.csv", row.names = FALSE)
 
 ##plotting seasonal means by station
 filtered_seasonal %>% 
