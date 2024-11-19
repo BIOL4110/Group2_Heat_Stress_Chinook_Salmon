@@ -73,13 +73,6 @@ joined_df_ordered %>%
   geom_point()+
   geom_smooth(method = 'lm')
 
-model4 <-lm(juvenile_productivity ~ station, data = joined_df_ordered)
-
-summary(model4)
-
-model5 <-lm(juvenile_productivity ~ station+year+annual_seasonal, data = joined_df_ordered)
-
-summary(model5)
 
 #project into future?
 #future research: how do current temps influence
@@ -108,15 +101,47 @@ joined_fix <- joined_df_fix %>%
 joined_fix$logtemp <- log(joined_fix$annual_seasonal)
 joined_fix$logprod <- log(joined_fix$juvenile_productivity)
 
-model6 <-lm(logprod ~ logtemp+year, data = joined_fix)
+model6 <- lm(logprod ~ logtemp+year, data = joined_fix)
 
 summary(model6)
 
+model7 <-lm(logprod ~ logtemp, data = joined_fix)
+
+summary(model7)
+AIC(model1, model2, model3, model4, model5, model6, model7)
+
 pairs(joined_fix[,2:5])
+
+joined
 
 joined_fix %>% 
   ggplot(aes(logtemp, logprod))+
   geom_point()+
-  geom_smooth(method = 'lm')+
   xlab("log(Yearly Seasonal Temperature)")+
   ylab("log(Juvenile Productivity")
+
+joined_fix %>% 
+  ggplot(aes(annual_seasonal, juvenile_productivity))+
+  geom_point()+
+  xlab("Year")+
+  ylab("log(Juvenile Productivity")  
+
+joined_fix %>% 
+  ggplot(aes(year, logprod))+
+  geom_point()+
+  xlab("Year")+
+  ylab("log(Juvenile Productivity")  
+
+##assumptions checking
+durbinWatsonTest(model7)
+res1<-resid(model1)
+#Produce residual vs. fitted plot.
+plot(fitted(model1), res1)
+abline(0,0)
+##Produce a Q-Q plot.
+qqnorm(res1)
+qqline(res1) 
+##Produce a density plot.
+plot(density(res1))
+
+
