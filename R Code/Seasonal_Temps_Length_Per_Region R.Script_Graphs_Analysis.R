@@ -156,3 +156,36 @@ qqline(res3)
 plot(density(res3))
 
 ## Also Normal Enough Distribution, significant P value
+
+
+
+
+## Next steps - Predicting trend over next 20 years?
+## How decrease in length impacts salmon
+
+
+# Create a sequence of future years and months (May to September)
+future_years <- expand.grid(
+  Year = seq(max(combined_salmon$Year) + 1, max(combined_salmon$Year) + 20),
+  Month = 5:9
+)
+
+# Add average seasonal temperature for simplicity (replace with more accurate data if available)
+avg_temp <- mean(combined_salmon$seasonal_mean, na.rm = TRUE)
+future_years$seasonal_mean <- avg_temp
+
+# Predict future salmon lengths using the model
+future_predictions <- predict(quantify2, newdata = future_years, interval = "confidence")
+
+# Combine future predictions with future years data
+future_years$Length <- future_predictions[, "fit"]
+
+# Plot the future predictions
+ggplot() +
+  geom_point(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region)) +
+  geom_smooth(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region), method = "lm") +
+  geom_line(data = future_years, aes(x = Year + (Month - 1) / 12, y = Length), color = "red") +
+  ggtitle("Predicted Salmon Length Over Next 20 Years (May to September)") +
+  xlab("Year") +
+  ylab("Salmon Length (cm)") +
+  theme_bw()
