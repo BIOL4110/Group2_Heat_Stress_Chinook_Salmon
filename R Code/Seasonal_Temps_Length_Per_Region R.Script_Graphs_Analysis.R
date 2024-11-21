@@ -157,12 +157,11 @@ plot(density(res3))
 
 ## Also Normal Enough Distribution, significant P value
 
-
-
-
 ## Next steps - Predicting trend over next 20 years?
 ## How decrease in length impacts salmon
 
+
+## Predicting 20 years into the future ##
 
 # Create a sequence of future years and months (May to September)
 future_years <- expand.grid(
