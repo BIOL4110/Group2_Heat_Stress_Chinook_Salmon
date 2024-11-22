@@ -44,6 +44,16 @@ seasonal_juv <- Filt_temp_for_juv_df %>%
   group_by(year) %>% 
   summarize(annual_seasonal = mean(seasonal_mean, na.rm = TRUE))
 
+##plotting temperatures
+seasonal_juv %>% 
+  ggplot(aes(year, annual_seasonal))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(min(joined_juv_seas$year),
+                                  max(joined_juv_seas$year), by = 1)) +
+  ylab("Seaonal Mean Temp (C)")+
+  xlab("Year")
 
 write_csv(seasonal_juv, "Cleaned Data/Seasonal_Juv.csv")
 
