@@ -3,6 +3,7 @@ library(tidyverse)
 library(data.table)
 library(dplyr)
 library(ggplot2)
+library(broom)
 
 ##is there a sig increase in temp over study period
 temp_mod <- lm(annual_seasonal ~ year, data = seasonal_by_year)
@@ -123,7 +124,7 @@ joined_fix %>%
 joined_fix %>% 
   ggplot(aes(annual_seasonal, juvenile_productivity))+
   geom_point()+
-  xlab("Year")+
+  xlab("")+
   ylab("log(Juvenile Productivity")  
 
 joined_fix %>% 
@@ -144,4 +145,39 @@ qqline(res1)
 ##Produce a density plot.
 plot(density(res1))
 
+joined_df_fix %>% 
+  ggplot(aes(year, annual_seasonal))+
+  geom_point()
 
+joined_df_fix %>% 
+  ggplot(aes(year, juvenile_productivity))+
+  geom_point()
+
+##Non-linear least squares Analysis ##
+#productivity in response to temp
+nls_temp <- nls(juvenile_productivity ~ a * annual_seasonal^2 + b * annual_seasonal + c,
+               data = joined_df_fix, start = list(a=0, b=0, c=0))
+summary(nls_temp)
+
+##plotting
+augment_temp <- augment(nls_temp)
+
+joined_df_fix %>% 
+  ggplot(aes(annual_seasonal, juvenile_productivity))+
+  geom_point()+
+  geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_temp)
+  
+#productivity in response to temp
+nls_year <- nls(juvenile_productivity ~ a * year^2 + b * year + c,
+                data = joined_df_fix, start = list(a=0, b=0, c=0))
+summary(nls_year)
+
+##plotting
+augment_year <- augment(nls_year)
+
+joined_df_fix %>% 
+  ggplot(aes(annual_seasonal, juvenile_productivity))+
+  geom_point()+
+  geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_year)
+
+## AIC less than 4 apart - statistically insignificant
