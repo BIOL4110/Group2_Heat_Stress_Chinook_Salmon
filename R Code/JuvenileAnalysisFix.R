@@ -44,14 +44,17 @@ seasonal_juv <- Filt_temp_for_juv_df %>%
   group_by(year) %>% 
   summarize(annual_seasonal = mean(seasonal_mean, na.rm = TRUE))
 
-##plotting temperatures
-seasonal_juv %>% 
+##Understanding temperature changes
+temp_mod <- lm(annual_seasonal ~ year, data = joined_juv_seas)
+summary(temp_mod)
+
+joined_juv_seas %>% 
   ggplot(aes(year, annual_seasonal))+
   geom_point()+
   geom_smooth(method="lm")+
   theme_bw()+
   scale_x_continuous(breaks = seq(min(joined_juv_seas$year),
-                                  max(joined_juv_seas$year), by = 1)) +
+                                max(joined_juv_seas$year), by = 1))+
   ylab("Seaonal Mean Temp (C)")+
   xlab("Year")
 
@@ -82,7 +85,7 @@ summary(nls_lm_temp)
 ##plotting
 augment_temp <- augment(nls_lm_temp)
 
-joined_juv_seas %>% 
+JS_temp <- joined_juv_seas %>% 
   ggplot(aes(annual_seasonal, juvenile_productivity))+
   geom_point()+
   geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_temp)+
@@ -90,6 +93,8 @@ joined_juv_seas %>%
   ylab("Number of Juveniles per Spawner")+
   xlab("Seasonal Temperatures from 2010-2017")
 
+##saving at high resolution 
+ggsave(filename ="JS_by_temp.png", path = "Images & Graphs", plot = JS_temp, width = 20, height = 15, units = "cm", dpi = 300)
 
 #Juveniles/spawner vs year
 nls_lm_year <- nlsLM(juvenile_productivity ~ a * year^2 + b * year + c, 
@@ -112,4 +117,5 @@ joined_juv_seas %>%
 
 ##comparing effects of year vs effects of temperature
 AIC(nls_lm_temp, nls_lm_year)
+
   #no significant difference, (temp = 83.5, year = 81.5)

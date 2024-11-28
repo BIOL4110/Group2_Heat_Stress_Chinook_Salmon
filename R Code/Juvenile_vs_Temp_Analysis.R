@@ -6,7 +6,7 @@ library(ggplot2)
 library(broom)
 
 ##is there a sig increase in temp over study period
-temp_mod <- lm(annual_seasonal ~ year, data = seasonal_by_year)
+temp_mod <- lm(annual_seasonal ~ year, data = joined_juv_seas)
 summary(temp_mod)
 
 juvenile_df <- read_csv("Cleaned Data/Juvenile_Data.csv")
@@ -53,7 +53,10 @@ summary(model1)
 joined_df_ordered %>% 
   ggplot(aes(annual_seasonal, juvenile_productivity))+
   geom_point()+
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm')+
+  ylab("Number of Juveniles per Spawner")+
+  xlab("Seasonal Temperatures from 2010-2017")+
+  theme_bw()
 
 ##RESULTS? 
 #R^2 indicates a weak influence
@@ -181,3 +184,26 @@ joined_df_fix %>%
   geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_year)
 
 ## AIC less than 4 apart - statistically insignificant
+
+
+
+mod <- lm(juvenile_productivity ~ annual_seasonal + year, data = joined_juv_seas)
+summary(mod)
+
+joined_juv_seas %>% 
+  ggplot(aes(annual_seasonal, juvenile_productivity))+
+#  geom_line(aes(x = annual_seasonal, y = .fitted), col = "red", size = 1, data= augment_temp)+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE, col = "blue")+
+  theme_bw()+
+  ylab("Number of Juveniles per Spawner")+
+  xlab("Seasonal Temperatures from 2010-2017")
+
+
+res1<-resid(mod)
+#Produce residual vs. fitted plot.
+plot(fitted(mod), res1) + abline(0,0)
+##Produce a Q-Q plot.
+qqnorm(res1) + qqline(res1) 
+##Produce a density plot.
+plot(density(res1))
