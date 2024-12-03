@@ -91,7 +91,7 @@ JS_temp <- joined_juv_seas %>%
   geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_temp)+
   theme_bw()+
   ylab("Number of Juveniles per Spawner")+
-  xlab("Seasonal Temperatures from 2010-2017")
+  xlab("Seasonal Temperatures from 2009-2017")
 
 ##saving at high resolution 
 ggsave(filename ="JS_by_temp.png", path = "Images & Graphs", plot = JS_temp, width = 20, height = 15, units = "cm", dpi = 300)
