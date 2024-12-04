@@ -33,8 +33,8 @@ all_stations <- rbind(afognak_df, buskin_df, klag_df, neva_df)
 chinook_juvenile_data <- read_excel("Raw Data/Chinook Juvenile Data.xlsx")
 
 # Length
-
-
+kodiak_asl_data <- read_csv("Raw Data/ASL_formatted_SoutheastKodiak(2010 - 2017) - Chinook and Chum.csv")
+unuk_asl_data <- read_excel("Raw Data/Unuk 1995 to 2017_Lewis.xlsx", sheet = 3, skip = 5)
 
 ## CLEANING DATA ##
 
@@ -45,19 +45,20 @@ temps <- all_stations %>%
 str(temps)
 
 seasonal <- temps %>% 
-  mutate(month = format(date, "%Y-%m"))
+  mutate(month = format(date, "%m")) %>% 
+  mutate(year = format(date, "%Y"))
 
-seasonal$month <- ym(seasonal$month)
+seasonal$month <- as.numeric(seasonal$month)
+seasonal$year <- as.numeric(seasonal$year)
 
 str(seasonal)
 
 seasonal_monthly_avg <- seasonal %>% 
-  filter(year(month) >= 2009,
-         year(month) <= 2019,
-         month(month) >= 5,
-         month(month) <= 9) %>% 
-  group_by(month) %>% 
+  group_by(year, month) %>% 
   summarize(seasonal_mean = mean(mean_temp_c, na.rm = TRUE))
+
+seasonal_monthly_avg_filt <- seasonal_monthly_avg %>% 
+  filter(year >= 2010, year <= 2017, month >= 5, month <= 9)
 
 seasonal_yearly_avg <- seasonal_monthly_avg %>% 
   mutate(year = format (month, "%Y")) %>% 
@@ -66,9 +67,13 @@ seasonal_yearly_avg <- seasonal_monthly_avg %>%
 
 seasonal_yearly_avg$year <- as.numeric(seasonal_yearly_avg$year)
 
-write_csv(seasonal_monthly_avg, "Cleaned Data/seasonal_monthly_avg.csv")
-write_csv(seasonal_yearly_avg, "Cleaned Data/seasonal_yearly_avg.csv")
+seasonal_yearly_avg_filt <- seasonal_yearly_avg %>% 
+  filter(year >= 2009, year <= 2017)
 
+write_csv(seasonal_monthly_avg_filt, "Cleaned Data/seasonal_monthly_avg_filt.csv")
+write_csv(seasonal_yearly_avg_filt, "Cleaned Data/seasonal_yearly_avg_filt.csv")
+
+str(seasonal_yearly_avg)
 
 # Juvenile per Spawner
 juvenile_data <- chinook_juvenile_data %>% 
@@ -87,8 +92,56 @@ write_csv(juvenile_data, "Cleaned Data/juvenile_data.csv")
 
 
 # Length
+kodiak_length <- kodiak_asl_data %>% 
+  filter(Species == "chinook") %>% 
+  select(c("sampleDate", "Length", "Species"))
 
+kodiak_length$sampleDate <- ymd(kodiak_length$sampleDate)
 
+kodiak_length <- kodiak_length %>%
+  mutate(year = format(sampleDate, "%Y"),
+         month = format(sampleDate, "%m"))
+
+kodiak_avg <- kodiak_length %>%
+  group_by(year, month) %>%
+  summarize(average_length = mean(Length, na.rm = TRUE))
+
+kodiak_avg$location <- "kodiak"
+
+write_csv(kodiak_avg, "kodiak_avg.csv")
+
+unuk_length <- unuk_asl_data %>% 
+  rename(Length = "MM MEF") %>% 
+  select("DATE", "Length")
+
+unuk_length$DATE <- ymd(unuk_length$DATE)
+
+unuk_length_filt <- unuk_length %>% 
+  mutate(year = format(DATE, "%Y"), month = format(DATE, "%m")) %>%  
+  filter(year >= 2010 & year <= 2017)
+
+unuk_avg <- unuk_length_filt %>%
+  group_by(year, month) %>%
+  summarize(average_length = mean(Length, na.rm = TRUE))
+
+unuk_avg$location <- "unuk"
+
+write_csv(unuk_avg, "unuk_avg.csv")
+
+all_length <- rbind(kodiak_avg, unuk_avg)
+
+all_length$year <- as.numeric(all_length$year)
+all_length$month <- as.numeric(all_length$month)
+
+all_length_filt <- all_length %>%
+  filter(month >= 5,
+         month <= 9)
+
+avg_yearly_lengths <- all_length_filt %>% 
+  group_by(year,location) %>% 
+  summarize(yearly_length = mean(average_length, na.rm = TRUE))
+
+write_csv(avg_yearly_lengths, "avg_yearly_lengths.csv")
 
 ## ANALYSIS ##
 
@@ -101,10 +154,8 @@ seasonal_yearly_avg %>%
   geom_point()+
   geom_smooth(method="lm")+
   theme_bw()+
-  scale_x_continuous(breaks = seq(min(joined_juv_seas$year),
-                                  max(joined_juv_seas$year), by = 1))+
   ylab("Seaonal Mean Temp (C)")+
-  xlab("Year")
+  xlab("Date")
 
 
 #Joining Juvenile per Spawner & Temperature Data
@@ -151,3 +202,84 @@ joined_juv_seas %>%
 AIC(nls_lm_temp, nls_lm_year)
 
 # Length
+
+#joining temperature with length data
+joined_length_seas <- inner_join(all_length_filt, seasonal_monthly_avg_filt, by = c("month", "year"))
+
+joined_length_seas$date <- make_date(year = joined_length_seas$year,
+                                     month = joined_length_seas$month)
+
+
+ggplot(joined_length_seas, aes(x = seasonal_mean, y = average_length, color = location)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Salmon Length in Both Regions Over Temperature") +
+  xlab("Temperature (°C)") +
+  ylab("Salmon Length (mm)") +
+  theme_bw()
+
+lm_temp <- lm(average_length~seasonal_mean, data = joined_length_seas)
+summary(lm_temp)
+
+res1 <- resid(lm_temp)
+plot(fitted(lm_temp), res1)
+abline(0,0)
+qqnorm(res1)
+qqline(res1)
+plot(density(res1))
+
+ggplot(joined_length_seas, aes(x = date, y = average_length, color = location)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Salmon Length in Both Regions Over Temperature") +
+  xlab("Date") +
+  ylab("Salmon Length (mm)") +
+  theme_bw()
+
+lm_year_temp <- lm(average_length~seasonal_mean + date, data = joined_length_seas)
+summary(lm_year_temp)
+
+res2 <- resid(lm_year_temp)
+plot(fitted(lm_year_temp), res2)
+abline(0,0)
+qqnorm(res2)
+qqline(res2)
+plot(density(res2))
+
+lm_year <- lm(average_length~date, data = joined_length_seas)
+summary(lm_year)
+
+res3 <- resid(lm_year)
+plot(fitted(lm_year), res3)
+abline(0,0)
+qqnorm(res3)
+qqline(res3)
+plot(density(res3))
+
+## Predicting 20 years into the future ## STILL NEEDS REVIEW
+
+# Create a sequence of future years and months (May to September)
+future_years <- expand.grid(
+  Year = seq(max(combined_salmon$Year) + 1, max(combined_salmon$Year) + 20),
+  Month = 5:9
+)
+
+# Add average seasonal temperature for simplicity (replace with more accurate data if available)
+avg_temp <- mean(combined_salmon$seasonal_mean, na.rm = TRUE)
+future_years$seasonal_mean <- avg_temp
+
+# Predict future salmon lengths using the model
+future_predictions <- predict(quantify2, newdata = future_years, interval = "confidence")
+
+# Combine future predictions with future years data
+future_years$Length <- future_predictions[, "fit"]
+
+# Plot the future predictions
+ggplot() +
+  geom_point(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region)) +
+  geom_smooth(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region), method = "lm") +
+  geom_line(data = future_years, aes(x = Year + (Month - 1) / 12, y = Length), color = "red") +
+  ggtitle("Predicted Salmon Length Over Next 20 Years (May to September)") +
+  xlab("Year") +
+  ylab("Salmon Length (cm)") +
+  theme_bw()
