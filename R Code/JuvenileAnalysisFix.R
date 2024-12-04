@@ -14,8 +14,10 @@ Juvenile_Data <- Chinook_Juvenile_Data %>%
 ##Making a new csv
 write.csv(Juvenile_Data, "Cleaned Data/Juvenile_Data_2.csv")
 
+temp_df<- all_df %>% 
+  select(station, date, mean_temp_c)
 ## Cleaning temp data to fit juvenile data
-juv_temp_df <- temp_df %>% 
+juv_temp_df <- temps %>% 
   mutate(yearmonth = format(date, "%Y-%m")) 
 
 juv_temp_df$yearmonth <- ym(juv_temp_df$yearmonth)

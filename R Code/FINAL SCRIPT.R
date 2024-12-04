@@ -40,7 +40,7 @@ unuk_asl_data <- read_excel("Raw Data/Unuk 1995 to 2017_Lewis.xlsx", sheet = 3, 
 
 # Temperature
 temps <- all_stations %>% 
-  select(station, date, mean_temp_c)
+  select(station, date, mean_temp_c) # all else extraneous
 
 str(temps)
 
@@ -58,27 +58,27 @@ seasonal_monthly_avg <- seasonal %>%
   summarize(seasonal_mean = mean(mean_temp_c, na.rm = TRUE))
 
 seasonal_monthly_avg_filt <- seasonal_monthly_avg %>% 
-  filter(year >= 2010, year <= 2017, month >= 5, month <= 9)
+  filter(year >= 2010, year <= 2019, month >= 5, month <= 9)
 
-seasonal_yearly_avg <- seasonal_monthly_avg %>% 
-  mutate(year = format (month, "%Y")) %>% 
+seasonal_yearly_avg <- seasonal_monthly_avg_filt %>% 
   group_by(year) %>% 
   summarize(annual_seasonal = mean(seasonal_mean, na.rm = TRUE))
 
 seasonal_yearly_avg$year <- as.numeric(seasonal_yearly_avg$year)
 
 seasonal_yearly_avg_filt <- seasonal_yearly_avg %>% 
-  filter(year >= 2009, year <= 2017)
+  filter(year >= 2009, year <= 2019)
 
 write_csv(seasonal_monthly_avg_filt, "Cleaned Data/seasonal_monthly_avg_filt.csv")
 write_csv(seasonal_yearly_avg_filt, "Cleaned Data/seasonal_yearly_avg_filt.csv")
 
-str(seasonal_yearly_avg)
+str(seasonal_yearly_avg_filt)
 
 # Juvenile per Spawner
 juvenile_data <- chinook_juvenile_data %>% 
   select(`Juvenile Year`, `Total J/S`) %>% 
-  filter(`Juvenile Year` > 2008 & `Juvenile Year` <= 2019)
+  filter(`Juvenile Year` > 2008 & `Juvenile Year` <= 2019) 
+  #only selected necessary information, removed Canadian specific stocks, water discharge, and other environmental factors
 
 str(juvenile_data)
 
@@ -95,6 +95,7 @@ write_csv(juvenile_data, "Cleaned Data/juvenile_data.csv")
 kodiak_length <- kodiak_asl_data %>% 
   filter(Species == "chinook") %>% 
   select(c("sampleDate", "Length", "Species"))
+  #removing NA columns and extraneous information
 
 kodiak_length$sampleDate <- ymd(kodiak_length$sampleDate)
 
@@ -113,6 +114,7 @@ write_csv(kodiak_avg, "kodiak_avg.csv")
 unuk_length <- unuk_asl_data %>% 
   rename(Length = "MM MEF") %>% 
   select("DATE", "Length")
+#removing NA columns and extraneous information
 
 unuk_length$DATE <- ymd(unuk_length$DATE)
 
@@ -137,29 +139,25 @@ all_length_filt <- all_length %>%
   filter(month >= 5,
          month <= 9)
 
-avg_yearly_lengths <- all_length_filt %>% 
-  group_by(year,location) %>% 
-  summarize(yearly_length = mean(average_length, na.rm = TRUE))
-
-write_csv(avg_yearly_lengths, "avg_yearly_lengths.csv")
+write_csv(all_length_filt, "avg_length_filt.csv")
 
 ## ANALYSIS ##
 
 #Temperature
-temp_mod <- lm(annual_seasonal ~ year, data = seasonal_yearly_avg)
+temp_mod <- lm(annual_seasonal ~ year, data = seasonal_yearly_avg_filt)
 summary(temp_mod)
 
-seasonal_yearly_avg %>% 
+seasonal_yearly_avg_filt %>% 
   ggplot(aes(year, annual_seasonal))+
   geom_point()+
   geom_smooth(method="lm")+
+  scale_x_continuous(breaks = c(2009:2019))+
   theme_bw()+
-  ylab("Seaonal Mean Temp (C)")+
-  xlab("Date")
-
+  ylab("Seaonal Mean Temp (°C)")+
+  xlab("Year")
 
 #Joining Juvenile per Spawner & Temperature Data
-joined_juv_seas <- inner_join(juvenile_data, seasonal_yearly_avg, by = "year")
+joined_juv_seas <- inner_join(juvenile_data, seasonal_yearly_avg_filt, by = "year")
 
 
 #J/S by Temperature
@@ -173,10 +171,10 @@ augment_temp <- augment(nls_lm_temp)
 joined_juv_seas %>% 
   ggplot(aes(annual_seasonal, juvenile_productivity))+
   geom_point()+
-  geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_temp)+
+  geom_line(aes(x = annual_seasonal, y = .fitted), data= augment_temp, col = "blue")+
   theme_bw()+
   ylab("Number of Juveniles per Spawner")+
-  xlab("Seasonal Temperatures from 2010-2017")
+  xlab("Seasonal Temperatures from 2009-2019 (°C)")
 
 
 #J/S by Year 
@@ -191,7 +189,7 @@ augment_year <- augment(nls_lm_year)
 joined_juv_seas %>%
   ggplot(aes(x = year, y = juvenile_productivity)) +
   geom_point() +
-  geom_line(aes(y = .fitted), data = augment_year) +
+  geom_line(aes(y = .fitted), col ="blue", data = augment_year) +
   scale_x_continuous(breaks = seq(min(joined_juv_seas$year),
                                   max(joined_juv_seas$year), by = 1)) +
   ylab("Number of Juveniles per Spawner") +
@@ -213,7 +211,6 @@ joined_length_seas$date <- make_date(year = joined_length_seas$year,
 ggplot(joined_length_seas, aes(x = seasonal_mean, y = average_length, color = location)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  ggtitle("Salmon Length in Both Regions Over Temperature") +
   xlab("Temperature (°C)") +
   ylab("Salmon Length (mm)") +
   theme_bw()
@@ -228,14 +225,6 @@ qqnorm(res1)
 qqline(res1)
 plot(density(res1))
 
-ggplot(joined_length_seas, aes(x = date, y = average_length, color = location)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  ggtitle("Salmon Length in Both Regions Over Temperature") +
-  xlab("Date") +
-  ylab("Salmon Length (mm)") +
-  theme_bw()
-
 lm_year_temp <- lm(average_length~seasonal_mean + date, data = joined_length_seas)
 summary(lm_year_temp)
 
@@ -246,40 +235,40 @@ qqnorm(res2)
 qqline(res2)
 plot(density(res2))
 
-lm_year <- lm(average_length~date, data = joined_length_seas)
-summary(lm_year)
+ggplot(joined_length_seas, aes(x = date, y = average_length, color = location)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  xlab("Month-Year") +
+  ylab("Salmon Length (mm)") +
+  theme_bw()
 
-res3 <- resid(lm_year)
-plot(fitted(lm_year), res3)
-abline(0,0)
-qqnorm(res3)
-qqline(res3)
-plot(density(res3))
+AIC(lm_temp, lm_year_temp)
 
-## Predicting 20 years into the future ## STILL NEEDS REVIEW
+## Predicting 20 years into the future 
 
-# Create a sequence of future years and months (May to September)
 future_years <- expand.grid(
-  Year = seq(max(combined_salmon$Year) + 1, max(combined_salmon$Year) + 20),
-  Month = 5:9
+  year = seq(max(joined_length_seas$year) + 1, max(joined_length_seas$year) + 20),
+  month = 5:9
 )
 
 # Add average seasonal temperature for simplicity (replace with more accurate data if available)
-avg_temp <- mean(combined_salmon$seasonal_mean, na.rm = TRUE)
+avg_temp <- mean(joined_length_seas$seasonal_mean, na.rm = TRUE)
 future_years$seasonal_mean <- avg_temp
+future_years$year <- as.numeric(future_years$year)
+future_years$date <- as.Date(paste(future_years$year, future_years$month, "01", sep = "-"))
 
 # Predict future salmon lengths using the model
-future_predictions <- predict(quantify2, newdata = future_years, interval = "confidence")
+future_predictions <- predict(lm_year_temp, newdata = future_years, interval = "confidence")
 
 # Combine future predictions with future years data
-future_years$Length <- future_predictions[, "fit"]
+future_years$average_length <- future_predictions[, "fit"]
 
 # Plot the future predictions
 ggplot() +
-  geom_point(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region)) +
-  geom_smooth(data = combined_salmon, aes(x = Year + (Month - 1) / 12, y = Length, color = Region), method = "lm") +
-  geom_line(data = future_years, aes(x = Year + (Month - 1) / 12, y = Length), color = "red") +
-  ggtitle("Predicted Salmon Length Over Next 20 Years (May to September)") +
+  geom_point(data = joined_length_seas, aes(x = date, y = average_length, color = location)) +
+  geom_smooth(data = joined_length_seas, aes(x = date, y = average_length, color = location), method = "lm") +
+  geom_line(data = future_years, aes(x = date, y = average_length), color = "red") +
   xlab("Year") +
-  ylab("Salmon Length (cm)") +
+  ylab("Salmon Length (mm)") +
   theme_bw()
+
