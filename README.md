@@ -8,7 +8,7 @@ Group members include:
 - Nora de Vos
 - Karleigh Fishback
 
-Our proposal can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/blob/main/BIOL_4110_Group2_Final_Paper.pdf)
+Our final paper can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/blob/main/BIOL_4110_Group2_Final_Paper.pdf)
 
 The final R-code script can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/blob/main/R%20Code/FINAL%20SCRIPT.R)
 
