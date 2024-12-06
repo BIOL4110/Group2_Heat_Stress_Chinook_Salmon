@@ -1,6 +1,6 @@
 ## Group2-Heat_Stress_Chinook_Salmon
 
-This is the repository for our project on Heat stress in Chinook Salmon for BIOL*4110.
+This is the repository for our project that aims to understand how the Temperature Size Rule and Heat stress impact Alaskan Chinook Salmon
 
 Group members include: 
 - Hannah Bennett
@@ -8,4 +8,8 @@ Group members include:
 - Nora de Vos
 - Karleigh Fishback
 
-Our proposal can be found [here](https://docs.google.com/document/d/17jghzWJy3QLZ4wkh5bjVgahK--HfYiBVtPVG6s2TM2Q/edit?usp=sharing)
+Our proposal can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/blob/main/BIOL_4110_Group2_Final_Paper.pdf)
+
+The final R-code script can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/blob/main/R%20Code/FINAL%20SCRIPT.R)
+
+All files needed to run our analysis can be found [here](https://github.com/BIOL4110/Group2_Heat_Stress_Chinook_Salmon/tree/main/Raw%20Data)
