@@ -1,4 +1,4 @@
-## Group2- Rising Temperatures and Alaskan Chinook Salmon
+## Group 2 - Rising Temperatures and Alaskan Chinook Salmon
 
 This is the repository for our project that aims to understand how the Temperature Size Rule and Heat stress impact Alaskan Chinook Salmon
 
