@@ -11,30 +11,30 @@ library(broom)
 ## RAW DATA ##
 
 #Temperature
-afognak_df <- read_csv("Raw Data/AKTEMP-USFWS_AlaskaOSM-OSM_Afognak-series-daily.csv", 
+afognak_df <- read_csv("AKTEMP-USFWS_AlaskaOSM-OSM_Afognak-series-daily.csv", 
                        skip = 81)
 afognak_df$station <- "afognak"
 
-buskin_df <- read_csv("Raw Data/AKTEMP-USFWS_AlaskaOSM-OSM_Buskin-series-daily.csv", 
+buskin_df <- read_csv("AKTEMP-USFWS_AlaskaOSM-OSM_Buskin-series-daily.csv", 
                       skip = 81)
 buskin_df$station <- "buskin"
 
-klag_df <- read_csv("Raw Data/AKTEMP-USFWS_AlaskaOSM-OSM_Klag-series-daily.csv", 
+klag_df <- read_csv("AKTEMP-USFWS_AlaskaOSM-OSM_Klag-series-daily.csv", 
                       skip = 81)
 klag_df$station <- "klag"
 
-neva_df <- read_csv("Raw Data/AKTEMP-USFWS_AlaskaOSM-OSM_Neva-series-daily.csv", 
+neva_df <- read_csv("AKTEMP-USFWS_AlaskaOSM-OSM_Neva-series-daily.csv", 
                       skip = 81)
 neva_df$station <- "neva"
 
 all_stations <- rbind(afognak_df, buskin_df, klag_df, neva_df)
 
 # Juvenile per Spawner
-chinook_juvenile_data <- read_excel("Raw Data/Chinook Juvenile Data.xlsx")
+chinook_juvenile_data <- read_excel("Chinook Juvenile Data.xlsx")
 
 # Length
-kodiak_asl_data <- read_csv("Raw Data/ASL_formatted_SoutheastKodiak(2010 - 2017) - Chinook and Chum.csv")
-unuk_asl_data <- read_excel("Raw Data/Unuk 1995 to 2017_Lewis.xlsx", sheet = 3, skip = 5)
+kodiak_asl_data <- read_csv("ASL_formatted_SoutheastKodiak(2010 - 2017) - Chinook and Chum.csv")
+unuk_asl_data <- read_excel("Unuk 1995 to 2017_Lewis.xlsx", sheet = 3, skip = 5)
 
 ## CLEANING DATA ##
 
@@ -69,8 +69,8 @@ seasonal_yearly_avg$year <- as.numeric(seasonal_yearly_avg$year)
 seasonal_yearly_avg_filt <- seasonal_yearly_avg %>% 
   filter(year >= 2009, year <= 2019)
 
-write_csv(seasonal_monthly_avg_filt, "Cleaned Data/seasonal_monthly_avg_filt.csv")
-write_csv(seasonal_yearly_avg_filt, "Cleaned Data/seasonal_yearly_avg_filt.csv")
+write_csv(seasonal_monthly_avg_filt, "seasonal_monthly_avg_filt.csv")
+write_csv(seasonal_yearly_avg_filt, "seasonal_yearly_avg_filt.csv")
 
 str(seasonal_yearly_avg_filt)
 
@@ -88,7 +88,7 @@ juvenile_data <- juvenile_data %>%
 
 juvenile_data$juvenile_productivity <- as.numeric(juvenile_data$juvenile_productivity)
 
-write_csv(juvenile_data, "Cleaned Data/juvenile_data.csv")
+write_csv(juvenile_data, "juvenile_data.csv")
 
 
 # Length
